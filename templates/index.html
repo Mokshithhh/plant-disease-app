@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Health AI</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2F80ED;
+            --success-color: #27AE60;
+            --warning-color: #F2994A;
+            --danger-color: #EB5757;
+            --text-main: #FFFFFF;
+            --text-muted: #E0E0E0;
+            --bg-glass: rgba(255, 255, 255, 0.1);
+            --border-glass: rgba(255, 255, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80') no-repeat center center/cover;
+            color: var(--text-main);
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            text-align: center;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-weight: 300;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        /* Drag and Drop Zone */
+        .drop-zone {
+            width: 100%;
+            height: 250px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.4);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #fff;
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.02);
+        }
+
+        .drop-zone__prompt {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .drop-zone__prompt svg {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 15px;
+            fill: currentColor;
+        }
+
+        .drop-zone__input {
+            display: none;
+        }
+
+        .drop-zone__thumb {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #cccccc;
+            background-size: cover;
+            background-position: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+
+        /* Submit Button */
+        button[type="submit"] {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(47, 128, 237, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        button[type="submit"]:hover {
+            background: #2565C0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(47, 128, 237, 0.6);
+        }
+
+        button[type="submit"]:disabled {
+            background: #737373;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Loader */
+        .loader {
+            display: none;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results Section */
+        .results-container {
+            margin-top: 30px;
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        .result-card {
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: left;
+        }
+
+        .result-card h3 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+        }
+
+        .result-card p {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        /* Dynamic Colors for Results */
+        .status-healthy { border-left: 5px solid var(--success-color); }
+        .status-early { border-left: 5px solid var(--warning-color); }
+        .status-late { border-left: 5px solid var(--danger-color); }
+
+        .btn-try-again {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-try-again:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    {% if not result %}
+    <h1>Plant Health AI</h1>
+    <p class="subtitle">Upload a plant leaf image for instant disease detection</p>
+
+    <form id="uploadForm" method="POST" action="/" enctype="multipart/form-data">
+        <div class="drop-zone" id="dropZone">
+            <span class="drop-zone__prompt">
+                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                <span>Drop leaf image here or click to upload</span>
+            </span>
+            <input type="file" name="image" id="fileInput" class="drop-zone__input" accept="image/*" required>
+        </div>
+        
+        <button type="submit" id="submitBtn">
+            <span id="btnText">Analyze Image</span>
+            <div class="loader" id="loader"></div>
+        </button>
+    </form>
+    {% else %}
+    
+    <h1>Analysis Complete</h1>
+    <p class="subtitle">Here are the AI diagnostics for your plant.</p>
+    
+    <div class="results-container">
+        <!-- We determine class based on result name -->
+        {% set status_class = 'status-early' %}
+        {% if result == 'Healthy' %}
+            {% set status_class = 'status-healthy' %}
+        {% elif result == 'Late_Blight' %}
+            {% set status_class = 'status-late' %}
+        {% endif %}
+        
+        <div class="result-card {{ status_class }}">
+            <h3>Infection Level</h3>
+            <p>{{ result.replace('_', ' ') }}</p>
+        </div>
+        
+        <div class="result-card">
+            <h3>Pesticide Recommendation</h3>
+            <p>{{ advice }}</p>
+        </div>
+        
+        <a href="/" class="btn-try-again">Analyze Another Plant</a>
+    </div>
+    
+    {% endif %}
+
+</div>
+
+<script>
+    // Only run upload related JS if the form exists (i.e. not on results page)
+    const dropZoneElement = document.querySelector(".drop-zone");
+    const inputElement = document.querySelector(".drop-zone__input");
+
+    if (dropZoneElement) {
+        dropZoneElement.addEventListener("click", (e) => {
+            inputElement.click();
+        });
+
+        inputElement.addEventListener("change", (e) => {
+            if (inputElement.files.length) {
+                updateThumbnail(dropZoneElement, inputElement.files[0]);
+            }
+        });
+
+        dropZoneElement.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZoneElement.classList.add("dragover");
+        });
+
+        ["dragleave", "dragend"].forEach((type) => {
+            dropZoneElement.addEventListener(type, (e) => {
+                dropZoneElement.classList.remove("dragover");
+            });
+        });
+
+        dropZoneElement.addEventListener("drop", (e) => {
+            e.preventDefault();
+
+            if (e.dataTransfer.files.length) {
+                inputElement.files = e.dataTransfer.files;
+                updateThumbnail(dropZoneElement, e.dataTransfer.files[0]);
+            }
+
+            dropZoneElement.classList.remove("dragover");
+        });
+
+        /**
+         * Updates the thumbnail on a drop zone element.
+         *
+         * @param {HTMLElement} dropZoneElement
+         * @param {File} file
+         */
+        function updateThumbnail(dropZoneElement, file) {
+            let thumbnailElement = dropZoneElement.querySelector(".drop-zone__thumb");
+
+            // First time - remove the prompt
+            if (dropZoneElement.querySelector(".drop-zone__prompt")) {
+                dropZoneElement.querySelector(".drop-zone__prompt").style.display = 'none';
+            }
+
+            // First time - there is no thumbnail element, so lets create it
+            if (!thumbnailElement) {
+                thumbnailElement = document.createElement("div");
+                thumbnailElement.classList.add("drop-zone__thumb");
+                dropZoneElement.appendChild(thumbnailElement);
+            }
+
+            // Show thumbnail for image files
+            if (file.type.startsWith("image/")) {
+                const reader = new FileReader();
+
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    thumbnailElement.style.backgroundImage = `url('${reader.result}')`;
+                };
+            }
+        }
+        
+        // Handle Form Submission Loading State
+        const form = document.getElementById("uploadForm");
+        const submitBtn = document.getElementById("submitBtn");
+        const btnText = document.getElementById("btnText");
+        const loader = document.getElementById("loader");
+        
+        form.addEventListener("submit", (e) => {
+            // Check if file is selected
+            if (inputElement.files.length === 0) {
+                e.preventDefault();
+                alert("Please select an image first.");
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            btnText.textContent = "Analyzing...";
+            loader.style.display = "block";
+            
+            // Allow the form to submit naturally
+        });
+    }
+</script>
+
+</body>
+</html>
